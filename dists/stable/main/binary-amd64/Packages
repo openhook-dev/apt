@@ -1,13 +1,13 @@
 Package: openhook
-Version: 0.3.0
+Version: 0.3.1
 Architecture: amd64
 Maintainer: openhook <hello@openhook.dev>
 Installed-Size: 7336
-Filename: pool/main/o/openhook/openhook_0.3.0_linux_amd64.deb
-Size: 3150604
-MD5sum: d2b4af9d6010c50be8b3c5e58914fe8c
-SHA1: 48214905fcde6f6229d9d508f7f1085a862ce96a
-SHA256: 414a3cf1d89e0cab01436ceaedfefb7a8088e53e6c7804b288ccc0f647411acb
+Filename: pool/main/o/openhook/openhook_0.3.1_linux_amd64.deb
+Size: 3150658
+MD5sum: 4a61d09c697b7303b52b1510e4890dfa
+SHA1: c48660428564304d9752bc7a384cea823aaef493
+SHA256: d8d4c8b68f875136e69987b70d0ce2a2f1d805a03e5f244a47c56e99f99f949e
 Priority: optional
 Homepage: https://openhook.dev
 Description: Event routing and channels for AI agents - receive webhooks from GitHub, Stripe, Linear and coordinate agent workflows
