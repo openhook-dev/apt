@@ -50,7 +50,7 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         run: |
-          echo "$GPG_PRIVATE_KEY" | gpg --import
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
 
       - name: Generate Packages file
         run: |
@@ -82,8 +82,8 @@ jobs:
 
           apt-ftparchive release . >> Release
 
-          gpg --default-key "$GPG_KEY_ID" -abs -o Release.gpg Release
-          gpg --default-key "$GPG_KEY_ID" --clearsign -o InRelease Release
+          gpg --batch --default-key "$GPG_KEY_ID" -abs -o Release.gpg Release
+          gpg --batch --default-key "$GPG_KEY_ID" --clearsign -o InRelease Release
 
       - name: Export public key
         env:
