@@ -34,7 +34,6 @@ jobs:
         run: |
           mkdir -p pool/main/o/openhook
 
-          # Download amd64 deb
           gh release download "v${VERSION}" \
             --repo openhook-dev/openhook-cli \
             --pattern "*.deb" \
@@ -58,15 +57,12 @@ jobs:
           mkdir -p dists/stable/main/binary-amd64
           mkdir -p dists/stable/main/binary-arm64
 
-          cd pool/main/o/openhook
+          # Run from repo root so Filename paths are correct (pool/main/o/openhook/...)
+          dpkg-scanpackages --arch amd64 pool/main/o/openhook > dists/stable/main/binary-amd64/Packages
+          gzip -k -f dists/stable/main/binary-amd64/Packages
 
-          # Generate Packages for amd64
-          dpkg-scanpackages --arch amd64 . > ../../../../dists/stable/main/binary-amd64/Packages
-          gzip -k -f ../../../../dists/stable/main/binary-amd64/Packages
-
-          # Generate Packages for arm64
-          dpkg-scanpackages --arch arm64 . > ../../../../dists/stable/main/binary-arm64/Packages
-          gzip -k -f ../../../../dists/stable/main/binary-arm64/Packages
+          dpkg-scanpackages --arch arm64 pool/main/o/openhook > dists/stable/main/binary-arm64/Packages
+          gzip -k -f dists/stable/main/binary-arm64/Packages
 
       - name: Generate Release file
         env:
@@ -84,10 +80,8 @@ jobs:
           Description: openhook CLI APT repository
           EOF
 
-          # Add checksums
           apt-ftparchive release . >> Release
 
-          # Sign Release file
           gpg --default-key "$GPG_KEY_ID" -abs -o Release.gpg Release
           gpg --default-key "$GPG_KEY_ID" --clearsign -o InRelease Release
 
