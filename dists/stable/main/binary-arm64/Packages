@@ -3,7 +3,7 @@ Version: 0.3.0
 Architecture: arm64
 Maintainer: openhook <hello@openhook.dev>
 Installed-Size: 7104
-Filename: ./openhook_0.3.0_linux_arm64.deb
+Filename: pool/main/o/openhook/openhook_0.3.0_linux_arm64.deb
 Size: 2900662
 MD5sum: 68b59c16ff4024a7c7ac693a43e537f8
 SHA1: 196ed58d7e2f8a7e94591a3de77277d4480335c9
