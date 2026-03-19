@@ -1,0 +1,103 @@
+name: Update APT Repository
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 0.3.0)'
+        required: true
+  repository_dispatch:
+    types: [release]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set version
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "VERSION=${{ github.event.client_payload.version }}" >> $GITHUB_ENV
+          else
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          fi
+
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p pool/main/o/openhook
+
+          # Download amd64 deb
+          gh release download "v${VERSION}" \
+            --repo openhook-dev/openhook-cli \
+            --pattern "*.deb" \
+            --dir pool/main/o/openhook/ || true
+
+          ls -la pool/main/o/openhook/
+
+      - name: Install apt utilities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev apt-utils
+
+      - name: Import GPG key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --import
+
+      - name: Generate Packages file
+        run: |
+          mkdir -p dists/stable/main/binary-amd64
+          mkdir -p dists/stable/main/binary-arm64
+
+          cd pool/main/o/openhook
+
+          # Generate Packages for amd64
+          dpkg-scanpackages --arch amd64 . > ../../../../dists/stable/main/binary-amd64/Packages
+          gzip -k -f ../../../../dists/stable/main/binary-amd64/Packages
+
+          # Generate Packages for arm64
+          dpkg-scanpackages --arch arm64 . > ../../../../dists/stable/main/binary-arm64/Packages
+          gzip -k -f ../../../../dists/stable/main/binary-arm64/Packages
+
+      - name: Generate Release file
+        env:
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+        run: |
+          cd dists/stable
+
+          cat > Release << EOF
+          Origin: openhook
+          Label: openhook
+          Suite: stable
+          Codename: stable
+          Architectures: amd64 arm64
+          Components: main
+          Description: openhook CLI APT repository
+          EOF
+
+          # Add checksums
+          apt-ftparchive release . >> Release
+
+          # Sign Release file
+          gpg --default-key "$GPG_KEY_ID" -abs -o Release.gpg Release
+          gpg --default-key "$GPG_KEY_ID" --clearsign -o InRelease Release
+
+      - name: Export public key
+        env:
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+        run: |
+          gpg --armor --export "$GPG_KEY_ID" > gpg.key
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Update repository for v${VERSION}" || echo "No changes"
+          git push
