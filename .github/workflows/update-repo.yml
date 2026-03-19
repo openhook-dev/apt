@@ -70,6 +70,9 @@ jobs:
         run: |
           cd dists/stable
 
+          # Remove old signed files
+          rm -f Release Release.gpg InRelease
+
           cat > Release << EOF
           Origin: openhook
           Label: openhook
